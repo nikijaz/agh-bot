@@ -1,0 +1,15 @@
+anecdote:
+  no_anecdote: "Я хотел бы рассказать анекдот, но я его забыл :("
+
+captcha:
+  button:
+    red: "красную"
+    yellow: "желтую"
+    green: "зеленую"
+    blue: "синюю"
+
+  message: "Привет, %{user}! Чтобы доказать, что ты не робот, нажми на *%{button}* кнопку ниже."
+
+goodbye:
+  message: "Прощай, %{user}!"
+  

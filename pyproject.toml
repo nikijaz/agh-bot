@@ -1,0 +1,26 @@
+[project]
+name = "agh-bot"
+version = "0.1.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+dependencies = [
+    "aiogram>=1.2.3",
+    "croniter>=6.0.0",
+    "i18nice[yaml]>=0.16.0",
+    "peewee-aio[asyncpg]>=2.0.0",
+    "python-dotenv>=1.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.0.17",
+]
+
+[tool.ruff]
+line-length = 120
+ignore = [
+    "E712", # Avoid using `==` to compare boolean values
+]
+
+[tool.ruff.format]
+quote-style = "double"
