@@ -12,7 +12,9 @@ from peewee_aio.fields import (
 
 from src import config
 
-DB: Final = Manager(config.POSTGRES_URL)
+DB: Final = Manager(
+    f"postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}/{config.POSTGRES_DB}",
+)
 
 
 @DB.register
