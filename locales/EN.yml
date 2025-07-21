@@ -8,7 +8,9 @@ captcha:
     green: "green"
     blue: "blue"
 
-  message: "Hello, %{user}! To prove that you are not a robot, please click the *%{button}* button below."
+  initial_message: "Hello, %{user}! To prove that you are not a robot, please click the *%{button}* button below."
+  not_found_error: "Captcha not found or not yours."
+  solved_message: "Captcha solved successfully!"
 
 goodbye:
   message: "Goodbye, %{user}!"

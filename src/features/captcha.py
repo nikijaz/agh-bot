@@ -1,7 +1,6 @@
 import random
 from typing import Final
 
-import i18n
 from aiogram.types import (
     CallbackQuery,
     ChatMemberUpdated,
@@ -9,6 +8,7 @@ from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
+from i18n import t
 
 from src import BOT
 from src.models import PendingCaptcha
@@ -36,10 +36,10 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
 
     message = await BOT.send_message(
         chat_member.chat.id,
-        i18n.t(
-            "captcha.message",
+        t(
+            "captcha.initial_message",
             user=f"@{chat_member.new_chat_member.user.username}",
-            button=i18n.t(f"captcha.button.{button_id}"),
+            button=t(f"captcha.button.{button_id}"),
         ),
         reply_markup=captcha_markup,
     )
@@ -70,6 +70,7 @@ async def process_captcha_response(callback_query: CallbackQuery) -> None:
         PendingCaptcha.user_id == callback_query.from_user.id,
     )
     if captcha is None:
+        await callback_query.answer(t("captcha.not_found_error"))
         return
 
     if captcha.button_id == button_id:
@@ -84,3 +85,4 @@ async def process_captcha_response(callback_query: CallbackQuery) -> None:
 
     await callback_query.message.delete()
     await captcha.delete()
+    await callback_query.answer(t("captcha.solved_message"))

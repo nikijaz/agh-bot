@@ -55,7 +55,7 @@ async def handle_inactivity(chat_id: int) -> None:
 
     used_hashes = set(
         a.anecdote_hash
-        async for a in AnecdoteHistory.select().where(
+        for a in await AnecdoteHistory.select().where(
             AnecdoteHistory.chat_id == chat_id,
         )
     )
