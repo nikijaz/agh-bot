@@ -12,6 +12,8 @@ COPY pyproject.toml uv.lock ./
 # Install dependencies
 RUN uv sync --all-extras --no-dev
 
-COPY . .
+COPY main.py ./
+COPY src/ src/
+COPY locales/ locales/
 
 CMD ["uv", "run", "--no-project", "main.py"]
