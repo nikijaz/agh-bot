@@ -39,7 +39,7 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
     message = await BOT.send_message(
         chat_member.chat.id,
         t(
-            "captcha.message.captca",
+            "captcha.message.captcha",
             user=f"@{chat_member.new_chat_member.user.username}",
             button=t(f"captcha.button.{button_id}"),
         ),
