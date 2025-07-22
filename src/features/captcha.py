@@ -8,6 +8,7 @@ from aiogram.types import (
     ChatPermissions,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    Message,
 )
 from i18n import t
 
@@ -67,6 +68,13 @@ async def dismiss_pending_captcha(chat_member: ChatMemberUpdated) -> None:
 
 
 async def process_captcha_response(callback_query: CallbackQuery) -> None:
+    if callback_query.data is None:
+        raise ValueError("Callback data must be provided")
+    if not callback_query.data.startswith("captcha:"):
+        raise ValueError("Callback data must follow 'captcha:*' format")
+    if not isinstance(callback_query.message, Message):
+        raise ValueError("Callback must be associated with a deleteable message")
+
     button_id = callback_query.data.split(":")[1]
 
     captcha = await PendingCaptcha.get_or_none(
