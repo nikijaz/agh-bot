@@ -91,10 +91,10 @@ async def process_captcha_response(callback_query: CallbackQuery) -> None:
             callback_query.from_user.id,
             ChatPermissions(can_send_messages=True),
         )
+        await callback_query.answer(t("captcha.message.solved"))
     else:
         await BOT.ban_chat_member(callback_query.message.chat.id, callback_query.from_user.id)
         await BOT.unban_chat_member(callback_query.message.chat.id, callback_query.from_user.id)
 
     await callback_query.message.delete()
     await captcha.delete()
-    await callback_query.answer(t("captcha.message.solved"))
