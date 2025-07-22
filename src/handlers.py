@@ -27,5 +27,5 @@ async def captcha_data_handler(callback_query: CallbackQuery) -> None:
 async def chat_member_left_handler(chat_member: ChatMemberUpdated) -> None:
     await captcha.dismiss_pending_captcha(chat_member)
     await BOT.send_message(
-        chat_member.chat.id, t("goodbye.message", user=f"@{chat_member.old_chat_member.user.username}")
+        chat_member.chat.id, t("goodbye.message.goodbye", user=f"@{chat_member.old_chat_member.user.username}")
     )

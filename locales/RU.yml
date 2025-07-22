@@ -1,5 +1,6 @@
 anecdote:
-  no_anecdote: "Я хотел бы рассказать анекдот, но я его забыл :("
+  message:
+    out_of_anecdotes: "Я хотел бы рассказать анекдот, но я его забыл :("
 
 captcha:
   button:
@@ -8,10 +9,12 @@ captcha:
     green: "зеленую"
     blue: "синюю"
 
-  initial_message: "Привет, %{user}! Чтобы доказать, что ты не робот, нажми на *%{button}* кнопку ниже."
-  not_found_error: "Капча не найдена или не принадлежит тебе."
-  solved_message: "Капча успешно решена!"
+  message:
+    captca: "Привет, %{user}! Чтобы доказать, что ты не робот, нажми на *%{button}* кнопку ниже."
+    not_found: "Капча не найдена или не принадлежит тебе."
+    solved: "Капча успешно решена!"
 
 goodbye:
-  message: "Прощай, %{user}!"
+  message:
+    goodbye: "Прощай, %{user}!"
   
