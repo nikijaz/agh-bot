@@ -23,7 +23,7 @@ async def record_message_activity(message: Message) -> None:
         last_activity=message.date,
     ).on_conflict(
         conflict_target=[ChatState.chat_id],
-        update={ChatState.last_activity: message.date},
+        update={ChatState.last_activity: message.date, ChatState.is_handled: False},
     )
 
 
