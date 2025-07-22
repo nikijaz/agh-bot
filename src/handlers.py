@@ -1,6 +1,6 @@
 from aiogram import F
 from aiogram.enums import ChatType
-from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
+from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, KICKED, ChatMemberUpdatedFilter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
 from i18n import t
 
@@ -26,6 +26,7 @@ async def captcha_data_handler(callback_query: CallbackQuery) -> None:
 @DP.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def chat_member_left_handler(chat_member: ChatMemberUpdated) -> None:
     await captcha.dismiss_pending_captcha(chat_member)
-    await BOT.send_message(
-        chat_member.chat.id, t("goodbye.message.goodbye", user=f"@{chat_member.old_chat_member.user.username}")
-    )
+    if chat_member.new_chat_member.status != KICKED:
+        await BOT.send_message(
+            chat_member.chat.id, t("goodbye.message.goodbye", user=f"@{chat_member.old_chat_member.user.username}")
+        )

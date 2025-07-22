@@ -1,6 +1,7 @@
 import random
 from typing import Final
 
+from aiogram.exceptions import AiogramError
 from aiogram.types import (
     CallbackQuery,
     ChatMemberUpdated,
@@ -58,7 +59,10 @@ async def dismiss_pending_captcha(chat_member: ChatMemberUpdated) -> None:
         PendingCaptcha.user_id == chat_member.new_chat_member.user.id,
     )
     if captcha is not None:
-        await BOT.delete_message(chat_member.chat.id, captcha.message_id)
+        try:
+            await BOT.delete_message(chat_member.chat.id, captcha.message_id)
+        except AiogramError:
+            pass  # Ignore if message does not exist
         await captcha.delete()
 
 
