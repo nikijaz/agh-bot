@@ -49,9 +49,10 @@ prevent spam and anecdote sending to keep the community engaged.
     uv run main.py
     ```
 
-7. Check for any linting or formatting issues:
+7. Check for any typing, linting or formatting issues:
 
     ```shell
+    mypy .
     ruff check .
     ruff format --check .
     ```

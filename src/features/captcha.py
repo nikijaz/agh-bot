@@ -8,6 +8,7 @@ from aiogram.types import (
     ChatPermissions,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    Message,
 )
 from i18n import t
 
@@ -38,7 +39,7 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
     message = await BOT.send_message(
         chat_member.chat.id,
         t(
-            "captcha.message.captca",
+            "captcha.message.captcha",
             user=f"@{chat_member.new_chat_member.user.username}",
             button=t(f"captcha.button.{button_id}"),
         ),
@@ -67,6 +68,13 @@ async def dismiss_pending_captcha(chat_member: ChatMemberUpdated) -> None:
 
 
 async def process_captcha_response(callback_query: CallbackQuery) -> None:
+    if callback_query.data is None:
+        raise ValueError("Callback data must be provided")
+    if not callback_query.data.startswith("captcha:"):
+        raise ValueError("Callback data must follow 'captcha:*' format")
+    if not isinstance(callback_query.message, Message):
+        raise ValueError("Callback must be associated with a deleteable message")
+
     button_id = callback_query.data.split(":")[1]
 
     captcha = await PendingCaptcha.get_or_none(
@@ -83,10 +91,10 @@ async def process_captcha_response(callback_query: CallbackQuery) -> None:
             callback_query.from_user.id,
             ChatPermissions(can_send_messages=True),
         )
+        await callback_query.answer(t("captcha.message.solved"))
     else:
         await BOT.ban_chat_member(callback_query.message.chat.id, callback_query.from_user.id)
         await BOT.unban_chat_member(callback_query.message.chat.id, callback_query.from_user.id)
 
     await callback_query.message.delete()
     await captcha.delete()
-    await callback_query.answer(t("captcha.message.solved"))
