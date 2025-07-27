@@ -4,7 +4,6 @@ from typing import Final
 from peewee_aio import AIOModel, Manager
 from peewee_aio.fields import (
     BigIntegerField,
-    BooleanField,
     CharField,
     IdentityField,
     TimestampField,
@@ -21,7 +20,6 @@ DB: Final = Manager(
 class ChatState(AIOModel):
     chat_id = BigIntegerField(primary_key=True)
     last_activity = TimestampField(utc=True)
-    is_handled = BooleanField(default=False)
 
     class Meta:
         table_name = "chat_states"
@@ -35,6 +33,15 @@ class AnecdoteHistory(AIOModel):
 
     class Meta:
         table_name = "anecdote_history"
+
+
+@DB.register
+class OutOfAnecdotesHistory(AIOModel):
+    chat_id = BigIntegerField()
+    inserted_at = TimestampField(utc=True, default=datetime.now)
+
+    class Meta:
+        table_name = "out_of_anecdotes_history"
 
 
 @DB.register
