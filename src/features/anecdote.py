@@ -9,9 +9,9 @@ from aiogram.types import Message
 from croniter import croniter
 from i18n import t
 
-from src import BOT
+from src import BOT, config
 from src.config import ACTIVITY_HANDLER_SCHEDULE, ACTIVITY_TIMEOUT_SECONDS
-from src.models import AnecdoteHistory, ChatState
+from src.models import AnecdoteHistory, ChatState, OutOfAnecdotesHistory
 
 with open("anecdotes.txt", "r") as file:  # Read anecdotes upon import
     ANECDOTES: Final = [a.strip() for a in file.read().split("***")]
@@ -23,7 +23,7 @@ async def record_message_activity(message: Message) -> None:
         last_activity=message.date,
     ).on_conflict(
         conflict_target=[ChatState.chat_id],
-        update={ChatState.last_activity: message.date, ChatState.is_handled: False},
+        update={ChatState.last_activity: message.date},
     )
 
 
@@ -32,15 +32,12 @@ async def _monitor_chat_activity() -> None:
         timeout_threshold = datetime.now() - timedelta(seconds=ACTIVITY_TIMEOUT_SECONDS)
         chat_states = await ChatState.select().where(
             ChatState.last_activity < timeout_threshold.timestamp(),
-            ChatState.is_handled == False,
         )
 
         for chat_state in chat_states:
             await _handle_inactivity(chat_state.chat_id)
-            chat_state.is_handled = True
-            await chat_state.save()
 
-        sleep_till = croniter(ACTIVITY_HANDLER_SCHEDULE, datetime.now(), second_at_beginning=True).get_next()
+        sleep_till = croniter(ACTIVITY_HANDLER_SCHEDULE, time.time(), second_at_beginning=True).get_next()
         await asyncio.sleep(sleep_till - time.time())
 
 
@@ -60,13 +57,25 @@ async def _handle_inactivity(chat_id: int) -> None:
         )
     )
     unused_anecdotes = [a for a in ANECDOTES if hash(a) not in used_hashes]
-    if not unused_anecdotes:
-        await BOT.send_message(chat_id, t("anecdote.message.out_of_anecdotes"))
+    if unused_anecdotes:
+        anecdote = random.choice(unused_anecdotes)
+        await BOT.send_message(chat_id, anecdote)
+        await AnecdoteHistory.insert(
+            anecdote_hash=hash(anecdote),
+            chat_id=chat_id,
+        )
         return
 
-    anecdote = random.choice(unused_anecdotes)
-    await BOT.send_message(chat_id, anecdote)
-    await AnecdoteHistory.insert(
-        anecdote_hash=hash(anecdote),
-        chat_id=chat_id,
+    interval_threshold = datetime.now() - timedelta(seconds=config.OUT_OF_ANECDOTES_INTERVAL_SECONDS)
+    should_notify = (
+        not await OutOfAnecdotesHistory.select()
+        .where(
+            OutOfAnecdotesHistory.chat_id == chat_id,
+            OutOfAnecdotesHistory.inserted_at > interval_threshold,
+        )
+        .exists()
     )
+
+    if should_notify:
+        await BOT.send_message(chat_id, t("anecdote.message.out_of_anecdotes"))
+        await OutOfAnecdotesHistory.insert(chat_id=chat_id)
