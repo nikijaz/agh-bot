@@ -3,7 +3,6 @@ import hashlib
 import random
 import time
 from datetime import datetime, timedelta
-from typing import Final
 
 from aiogram.types import Message
 from croniter import croniter
@@ -12,9 +11,6 @@ from i18n import t
 from src import BOT, config
 from src.config import ACTIVITY_HANDLER_SCHEDULE, ACTIVITY_TIMEOUT_SECONDS
 from src.models import AnecdoteHistory, ChatState, OutOfAnecdotesHistory
-
-with open("anecdotes.txt", "r") as file:  # Read anecdotes upon import
-    ANECDOTES: Final = [a.strip() for a in file.read().split("***")]
 
 
 async def record_message_activity(message: Message) -> None:
@@ -50,13 +46,16 @@ async def _handle_inactivity(chat_id: int) -> None:
     def hash(anecdote: str) -> str:
         return hashlib.sha1(anecdote.encode()).hexdigest()[:32]
 
+    with open("anecdotes.txt", "r") as file:
+        anecdotes = [a.strip() for a in file.read().split("***")]
+
     used_hashes = set(
         a.anecdote_hash
         for a in await AnecdoteHistory.select().where(
             AnecdoteHistory.chat_id == chat_id,
         )
     )
-    unused_anecdotes = [a for a in ANECDOTES if hash(a) not in used_hashes]
+    unused_anecdotes = [a for a in anecdotes if hash(a) not in used_hashes]
     if unused_anecdotes:
         anecdote = random.choice(unused_anecdotes)
         await BOT.send_message(chat_id, anecdote)
