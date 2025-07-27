@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from aiogram.types import Message
 from croniter import croniter
 from i18n import t
+from peewee import fn
 
 from src import BOT, config
 from src.config import ACTIVITY_HANDLER_SCHEDULE, ACTIVITY_TIMEOUT_SECONDS
@@ -27,7 +28,13 @@ async def _monitor_chat_activity() -> None:
     while True:
         timeout_threshold = datetime.now() - timedelta(seconds=ACTIVITY_TIMEOUT_SECONDS)
         chat_states = await ChatState.select().where(
-            ChatState.last_activity < timeout_threshold.timestamp(),
+            ChatState.last_activity < timeout_threshold,
+            ~fn.EXISTS(  # Ensure there are no recent anecdotes
+                AnecdoteHistory.select().where(
+                    AnecdoteHistory.chat_id == ChatState.chat_id,
+                    AnecdoteHistory.inserted_at > timeout_threshold,
+                )
+            ),
         )
 
         for chat_state in chat_states:
