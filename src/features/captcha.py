@@ -1,5 +1,7 @@
+import asyncio
 import random
-from typing import Final
+from datetime import datetime, timedelta
+from typing import Final, cast
 
 from aiogram.exceptions import AiogramError
 from aiogram.types import (
@@ -12,7 +14,7 @@ from aiogram.types import (
 )
 from i18n import t
 
-from src import BOT
+from src import BOT, config
 from src.models import PendingCaptcha
 
 CAPTCHA_BUTTONS: Final = {
@@ -52,6 +54,45 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
         message_id=message.message_id,
         button_id=button_id,
     )
+
+
+async def _monitor_captcha_timeout() -> None:
+    while True:
+        current_datetime = datetime.now()
+
+        timeout_threshold = current_datetime - timedelta(seconds=config.CAPTCHA_TIMEOUT_SECONDS)
+        pending_captchas = await PendingCaptcha.select().where(
+            PendingCaptcha.inserted_at < timeout_threshold,
+        )
+
+        for captcha in pending_captchas:
+            try:
+                await BOT.ban_chat_member(captcha.chat_id, captcha.user_id)
+                await BOT.unban_chat_member(captcha.chat_id, captcha.user_id)
+            except AiogramError:
+                pass  # Ignore if user cannot be banned/unbanned
+
+            try:
+                await BOT.delete_message(captcha.chat_id, captcha.message_id)
+            except AiogramError:
+                pass  # Ignore if message does not exist or cannot be deleted
+            await captcha.delete()
+
+        closest_pending_captcha = await PendingCaptcha.select().order_by(PendingCaptcha.inserted_at).first()
+        if closest_pending_captcha is None:
+            await asyncio.sleep(config.CAPTCHA_TIMEOUT_SECONDS)
+        else:
+            sleep_till = cast(datetime, closest_pending_captcha.inserted_at) + timedelta(
+                seconds=config.CAPTCHA_TIMEOUT_SECONDS
+            )
+            await asyncio.sleep(
+                min(5, (sleep_till - current_datetime).total_seconds())  # Avoid busy-waiting
+            )
+
+
+if not asyncio.get_event_loop().is_running():
+    raise RuntimeError("This feature should only be imported when the event loop is running.")
+asyncio.create_task(_monitor_captcha_timeout())  # Start monitoring captcha timeouts upon import
 
 
 async def dismiss_pending_captcha(chat_member: ChatMemberUpdated) -> None:
