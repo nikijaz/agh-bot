@@ -10,7 +10,7 @@ captcha:
     blue: "blue"
 
   message:
-    captca: "Hello, %{user}! To prove that you are not a robot, please click the *%{button}* button below."
+    captcha: "Hello, %{user}! To prove that you are not a robot, please click the *%{button}* button below."
     not_found: "Captcha either not found or not yours."
     solved: "Captcha solved successfully!"
 
