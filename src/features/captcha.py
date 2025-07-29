@@ -114,7 +114,7 @@ async def process_captcha_response(callback_query: CallbackQuery) -> None:
     if not callback_query.data.startswith("captcha:"):
         raise ValueError("Callback data must follow 'captcha:*' format")
     if not isinstance(callback_query.message, Message):
-        raise ValueError("Callback must be associated with a deleteable message")
+        raise ValueError("Callback must be associated with a deletable message")
 
     button_id = callback_query.data.split(":")[1]
 
