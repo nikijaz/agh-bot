@@ -34,7 +34,7 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
 
     button_ids = list(CAPTCHA_BUTTONS.keys())
     random.shuffle(button_ids)
-    button_id = random.choice(button_ids)
+    button_id = button_ids[random.randint(1, len(button_ids) - 1)]
     shuffled_buttons = [CAPTCHA_BUTTONS[id] for id in button_ids]
     captcha_markup = InlineKeyboardMarkup(inline_keyboard=[shuffled_buttons[:2], shuffled_buttons[2:]])
 
