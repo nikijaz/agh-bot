@@ -13,16 +13,7 @@ from src.config import ACTIVITY_HANDLER_SCHEDULE
 from src.models import AnecdoteHistory, ChatState, OutOfAnecdotesHistory
 
 
-async def record_message_activity(message: Message) -> None:
-    await ChatState.insert(
-        chat_id=message.chat.id,
-        last_activity=message.date,
-    ).on_conflict(
-        conflict_target=[ChatState.chat_id],
-        update={ChatState.last_activity: message.date},
-    )
-
-
+@lambda _: asyncio.create_task(_())  # IIFE
 async def _monitor_chat_activity() -> None:
     while True:
         chat_states = await ChatState.select().where(
@@ -38,28 +29,20 @@ async def _monitor_chat_activity() -> None:
         for chat_state in chat_states:
             await _handle_inactivity(chat_state.chat_id)
 
-        sleep_till = croniter(ACTIVITY_HANDLER_SCHEDULE, time.time(), second_at_beginning=True).get_next()
-        await asyncio.sleep(sleep_till - time.time())
-
-
-if not asyncio.get_event_loop().is_running():
-    raise RuntimeError("This feature should only be imported when the event loop is running.")
-asyncio.create_task(_monitor_chat_activity())  # Start monitoring chat activity upon import
+        current_time = time.time()
+        sleep_till = croniter(ACTIVITY_HANDLER_SCHEDULE, current_time, second_at_beginning=True).get_next()
+        await asyncio.sleep(sleep_till - current_time)
 
 
 async def _handle_inactivity(chat_id: int) -> None:
     def hash(anecdote: str) -> str:
         return hashlib.sha1(anecdote.encode()).hexdigest()[:32]
 
-    with open("anecdotes.txt", "r") as file:
+    with open("anecdotes.txt", "r") as file:  # Read anecdotes and split them by "***"
         anecdotes = [a.strip() for a in file.read().split("***")]
 
-    used_hashes = set(
-        a.anecdote_hash
-        for a in await AnecdoteHistory.select().where(
-            AnecdoteHistory.chat_id == chat_id,
-        )
-    )
+    used_anecdotes = await AnecdoteHistory.select().where(AnecdoteHistory.chat_id == chat_id)
+    used_hashes = set(a.anecdote_hash for a in used_anecdotes)
     unused_anecdotes = [a for a in anecdotes if hash(a) not in used_hashes]
     if unused_anecdotes:
         anecdote = random.choice(unused_anecdotes)
@@ -78,3 +61,13 @@ async def _handle_inactivity(chat_id: int) -> None:
     if should_notify:
         await BOT.send_message(chat_id, t("anecdote.message.out_of_anecdotes"))
         await OutOfAnecdotesHistory.insert(chat_id=chat_id)
+
+
+async def record_message_activity(message: Message) -> None:
+    await ChatState.insert(
+        chat_id=message.chat.id,
+        last_activity=message.date,
+    ).on_conflict(
+        conflict_target=[ChatState.chat_id],
+        update={ChatState.last_activity: message.date},
+    )
