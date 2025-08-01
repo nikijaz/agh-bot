@@ -1,12 +1,12 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Final
 
 from peewee_aio import AIOModel, Manager
 from peewee_aio.fields import (
     BigIntegerField,
     CharField,
+    DateTimeField,
     IdentityField,
-    TimestampField,
 )
 
 from src import config
@@ -16,10 +16,14 @@ DB: Final = Manager(
 )
 
 
+class DateTimeTZField(DateTimeField[datetime]):
+    field_type = "TIMESTAMPTZ"
+
+
 @DB.register
 class ChatState(AIOModel):
     chat_id = BigIntegerField(primary_key=True)
-    last_activity = TimestampField(utc=True)
+    last_activity = DateTimeTZField()
 
     class Meta:
         table_name = "chat_states"
@@ -29,7 +33,7 @@ class ChatState(AIOModel):
 class AnecdoteHistory(AIOModel):
     anecdote_hash = CharField(max_length=32, primary_key=True)
     chat_id = BigIntegerField()
-    inserted_at = TimestampField(utc=True, default=datetime.now)
+    inserted_at = DateTimeTZField(default=lambda: datetime.now(timezone.utc))
 
     class Meta:
         table_name = "anecdote_history"
@@ -38,7 +42,7 @@ class AnecdoteHistory(AIOModel):
 @DB.register
 class OutOfAnecdotesHistory(AIOModel):
     chat_id = BigIntegerField()
-    inserted_at = TimestampField(utc=True, default=datetime.now)
+    inserted_at = DateTimeTZField(default=lambda: datetime.now(timezone.utc))
 
     class Meta:
         table_name = "out_of_anecdotes_history"
@@ -51,7 +55,7 @@ class PendingCaptcha(AIOModel):
     user_id = BigIntegerField()
     message_id = BigIntegerField()
     button_id = CharField(max_length=32)
-    inserted_at = TimestampField(utc=True, default=datetime.now)
+    inserted_at = DateTimeTZField(default=lambda: datetime.now(timezone.utc))
 
     class Meta:
         table_name = "pending_captchas"
