@@ -59,8 +59,6 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
 
 async def _monitor_captcha_timeout() -> None:
     while True:
-        current_datetime = datetime.now()
-
         pending_captchas = await PendingCaptcha.select().where(
             PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{config.CAPTCHA_TIMEOUT_SECONDS} seconds'")
         )  # fmt: skip
@@ -78,16 +76,7 @@ async def _monitor_captcha_timeout() -> None:
                 pass  # Ignore if message does not exist or cannot be deleted
             await captcha.delete()
 
-        closest_pending_captcha = await PendingCaptcha.select().order_by(PendingCaptcha.inserted_at).first()
-        if closest_pending_captcha is None:
-            await asyncio.sleep(config.CAPTCHA_TIMEOUT_SECONDS)
-        else:
-            sleep_till = cast(datetime, closest_pending_captcha.inserted_at) + timedelta(
-                seconds=config.CAPTCHA_TIMEOUT_SECONDS
-            )
-            await asyncio.sleep(
-                min(5, (sleep_till - current_datetime).total_seconds())  # Avoid busy-waiting
-            )
+        await asyncio.sleep(1)  # Avoid busy-waiting
 
 
 if not asyncio.get_event_loop().is_running():
