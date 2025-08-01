@@ -19,6 +19,7 @@ dev = [
     { name = "mypy" },
     { name = "ruff" },
     { name = "types-croniter" },
+    { name = "types-peewee" },
 ]
 
 [package.metadata]
@@ -35,6 +36,7 @@ dev = [
     { name = "mypy", specifier = ">=1.17.0" },
     { name = "ruff", specifier = ">=0.0.17" },
     { name = "types-croniter", specifier = ">=6.0.0.20250626" },
+    { name = "types-peewee", specifier = ">=3.18.2.20250710" },
 ]
 
 [[package]]
@@ -1040,6 +1042,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/01/7e/2bb235f73d545fe3b77658a63b71e8d68b4fcabfbedd7956661bc31e6303/types_croniter-6.0.0.20250626.tar.gz", hash = "sha256:c32243b16d4dfa7c9989a5eadc6762459d093dded023f3c363fdee6b96578a77", size = 11745 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f9/84/d51e29ccfe9ae23bb0cd0a4c91741ef03c923f7385eeac4b00411e20988c/types_croniter-6.0.0.20250626-py3-none-any.whl", hash = "sha256:3e8c37b54b541f323b2c487f3a1c9dcb27a7092333a2d5c09fff0c4d41c68380", size = 9757 },
+]
+
+[[package]]
+name = "types-peewee"
+version = "3.18.2.20250710"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/89/5f/37fc1ae26b0b75f0bd4fa9ddd14d2188c74aae140eee2b41372746b057b6/types_peewee-3.18.2.20250710.tar.gz", hash = "sha256:8fc803df43f42f663798300d36cd5015478960c8cca5e27de9676c42ff3b74f1", size = 20722 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/bf/307bae454876eb9f8536217572d1adfc23fa6bf5ee4ef8665a911028e918/types_peewee-3.18.2.20250710-py3-none-any.whl", hash = "sha256:f4fa6f849247a9167abf11e5908354efbd41c1f5f2cca66abf6900d2332b03c3", size = 19090 },
 ]
 
 [[package]]

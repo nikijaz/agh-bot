@@ -13,6 +13,7 @@ from aiogram.types import (
     Message,
 )
 from i18n import t
+from peewee import SQL
 
 from src import BOT, config
 from src.models import PendingCaptcha
@@ -60,10 +61,9 @@ async def _monitor_captcha_timeout() -> None:
     while True:
         current_datetime = datetime.now()
 
-        timeout_threshold = current_datetime - timedelta(seconds=config.CAPTCHA_TIMEOUT_SECONDS)
         pending_captchas = await PendingCaptcha.select().where(
-            PendingCaptcha.inserted_at < timeout_threshold,
-        )
+            PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{config.CAPTCHA_TIMEOUT_SECONDS} seconds'")
+        )  # fmt: skip
 
         for captcha in pending_captchas:
             try:

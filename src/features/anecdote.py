@@ -2,15 +2,14 @@ import asyncio
 import hashlib
 import random
 import time
-from datetime import datetime, timedelta
 
 from aiogram.types import Message
 from croniter import croniter
 from i18n import t
-from peewee import fn
+from peewee import SQL, fn
 
 from src import BOT, config
-from src.config import ACTIVITY_HANDLER_SCHEDULE, ACTIVITY_TIMEOUT_SECONDS
+from src.config import ACTIVITY_HANDLER_SCHEDULE
 from src.models import AnecdoteHistory, ChatState, OutOfAnecdotesHistory
 
 
@@ -26,16 +25,15 @@ async def record_message_activity(message: Message) -> None:
 
 async def _monitor_chat_activity() -> None:
     while True:
-        timeout_threshold = datetime.now() - timedelta(seconds=ACTIVITY_TIMEOUT_SECONDS)
         chat_states = await ChatState.select().where(
-            ChatState.last_activity < timeout_threshold,
+            ChatState.last_activity < SQL(f"NOW() - INTERVAL '{config.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
             ~fn.EXISTS(  # Ensure there are no recent anecdotes
                 AnecdoteHistory.select().where(
                     AnecdoteHistory.chat_id == ChatState.chat_id,
-                    AnecdoteHistory.inserted_at > timeout_threshold,
+                    AnecdoteHistory.inserted_at > SQL(f"NOW() - INTERVAL '{config.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
                 )
             ),
-        )
+        )  # fmt: skip
 
         for chat_state in chat_states:
             await _handle_inactivity(chat_state.chat_id)
@@ -72,15 +70,10 @@ async def _handle_inactivity(chat_id: int) -> None:
         )
         return
 
-    interval_threshold = datetime.now() - timedelta(seconds=config.OUT_OF_ANECDOTES_INTERVAL_SECONDS)
-    should_notify = (
-        not await OutOfAnecdotesHistory.select()
-        .where(
+    should_notify = await OutOfAnecdotesHistory.select().where(
             OutOfAnecdotesHistory.chat_id == chat_id,
-            OutOfAnecdotesHistory.inserted_at > interval_threshold,
-        )
-        .exists()
-    )
+            OutOfAnecdotesHistory.inserted_at > SQL(f"NOW() - INTERVAL '{config.OUT_OF_ANECDOTES_INTERVAL_SECONDS} seconds'"),
+    ).count() == 0  # fmt: skip
 
     if should_notify:
         await BOT.send_message(chat_id, t("anecdote.message.out_of_anecdotes"))
