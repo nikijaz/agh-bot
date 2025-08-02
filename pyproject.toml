@@ -13,8 +13,14 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mypy>=1.17.0",
     "ruff>=0.0.17",
+    "types-croniter>=6.0.0.20250626",
+    "types-peewee>=3.18.2.20250710",
 ]
+
+[tool.mypy]
+strict = true
 
 [tool.ruff]
 line-length = 120
