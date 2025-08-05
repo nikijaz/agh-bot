@@ -11,7 +11,8 @@ ENV UV_COMPILE_BYTECODE=1
 WORKDIR /app
 
 # Install Python dependencies using cached mounts for speed
-RUN --mount=type=bind,source=uv.lock,target=uv.lock \
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --frozen --no-default-groups
 
