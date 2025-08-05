@@ -1,19 +1,23 @@
-FROM python:3.13-slim-bookworm
+# Use slim image for smaller size
+FROM python:3.13-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends
-
-WORKDIR /app
-
-# Install uv
+# Install uv package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY pyproject.toml uv.lock ./
+# Compile Python bytecode for faster startup
+ENV UV_COMPILE_BYTECODE=1
 
-# Install dependencies
-RUN uv sync --all-extras --no-dev
+# Set up application directory
+WORKDIR /app
 
-COPY main.py ./
-COPY src/ src/
-COPY locales/ locales/
+# Install Python dependencies using cached mounts for speed
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --frozen --no-default-groups
 
-CMD ["uv", "run", "--no-project", "main.py"]
+# Copy all application files
+ADD . .
+
+# Start the bot
+CMD ["uv", "run", "--no-sync", "main.py"]
