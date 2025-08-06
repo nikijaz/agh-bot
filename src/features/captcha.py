@@ -31,7 +31,10 @@ CAPTCHA_BUTTONS: Final = {
 }
 
 
-@lambda _: asyncio.create_task(_())  # IIFE
+def setup() -> None:
+    asyncio.create_task(_monitor_captcha_timeout())
+
+
 async def _monitor_captcha_timeout() -> None:
     while True:
         expired_captchas = await PendingCaptcha.select().where(

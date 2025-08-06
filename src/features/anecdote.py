@@ -13,7 +13,10 @@ from src.config import ACTIVITY_HANDLER_SCHEDULE
 from src.models import AnecdoteHistory, ChatState, OutOfAnecdotesHistory
 
 
-@lambda _: asyncio.create_task(_())  # IIFE
+def setup() -> None:
+    asyncio.create_task(_monitor_chat_activity())
+
+
 async def _monitor_chat_activity() -> None:
     while True:
         chat_states = await ChatState.select().where(

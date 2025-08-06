@@ -2,7 +2,8 @@ import asyncio
 
 import i18n
 
-from src import BOT, DP, config
+from src import BOT, DP, config, handlers
+from src.features import anecdote, captcha
 from src.models import DB
 
 
@@ -14,8 +15,10 @@ async def main() -> None:
 
     await DB.create_tables()
 
-    # Register handlers
-    from src import handlers  # noqa: F401
+    handlers.setup()
+
+    anecdote.setup()
+    captcha.setup()
 
     await DP.start_polling(BOT)
 

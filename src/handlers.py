@@ -1,4 +1,8 @@
+from typing import Any, Callable
+
 from aiogram import F
+from aiogram.dispatcher.event.handler import CallbackType
+from aiogram.dispatcher.event.telegram import TelegramEventObserver
 from aiogram.enums import ChatMemberStatus, ChatType
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
@@ -8,23 +12,43 @@ from src import BOT, DP
 from src.features import anecdote, captcha
 from src.features.captcha import CaptchaCallback
 
+HANDLER_REGISTRARS: list[Callable[[], Any]] = []
 
-@DP.message(~F.from_user.is_bot & F.chat.type != ChatType.PRIVATE)
+
+def setup() -> None:
+    for handler_registrar in HANDLER_REGISTRARS:
+        handler_registrar()
+
+
+def handler(event: TelegramEventObserver, *filters: CallbackType) -> Callable[[CallbackType], CallbackType]:
+    """
+    Postpone registration of a handler until the setup function is called.
+    This ensures that all handlers are registered in a controlled manner.
+    """
+
+    def wrapper(callback: CallbackType) -> CallbackType:
+        HANDLER_REGISTRARS.append(lambda: event.register(callback, *filters))
+        return callback
+
+    return wrapper
+
+
+@handler(DP.message, ~F.from_user.is_bot & F.chat.type != ChatType.PRIVATE)
 async def message_handler(message: Message) -> None:
     await anecdote.record_message_activity(message)
 
 
-@DP.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
+@handler(DP.chat_member, ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def chat_member_join_handler(chat_member: ChatMemberUpdated) -> None:
     await captcha.send_captcha(chat_member)
 
 
-@DP.callback_query(CaptchaCallback.filter())
+@handler(DP.callback_query, CaptchaCallback.filter())
 async def captcha_data_handler(callback_query: CallbackQuery, callback_data: CaptchaCallback) -> None:
     await captcha.process_captcha_response(callback_query, callback_data)
 
 
-@DP.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
+@handler(DP.chat_member, ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def chat_member_left_handler(chat_member: ChatMemberUpdated) -> None:
     await captcha.dismiss_pending_captcha(chat_member)
     if chat_member.new_chat_member.status != ChatMemberStatus.KICKED:
