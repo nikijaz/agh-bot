@@ -1,9 +1,8 @@
 from typing import Any, Callable
 
-from aiogram import F
 from aiogram.dispatcher.event.handler import CallbackType
 from aiogram.dispatcher.event.telegram import TelegramEventObserver
-from aiogram.enums import ChatMemberStatus, ChatType
+from aiogram.enums import ChatMemberStatus, ChatType, ContentType
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
 from i18n import t
@@ -33,9 +32,13 @@ def handler(event: TelegramEventObserver, *filters: CallbackType) -> Callable[[C
     return wrapper
 
 
-@handler(DP.message, ~F.from_user.is_bot & F.chat.type != ChatType.PRIVATE)
+@handler(DP.message)
 async def message_handler(message: Message) -> None:
-    await anecdote.record_message_activity(message)
+    if message.content_type in {ContentType.NEW_CHAT_MEMBERS, ContentType.LEFT_CHAT_MEMBER}:
+        await message.delete()  # Delete telegram's join/leave messages, we handle them ourselves
+
+    if message.chat.type != ChatType.PRIVATE and message.from_user and not message.from_user.is_bot:
+        await anecdote.record_message_activity(message)
 
 
 @handler(DP.chat_member, ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
