@@ -1,4 +1,6 @@
 import asyncio
+import logging
+import sys
 
 import i18n
 
@@ -20,8 +22,15 @@ async def main() -> None:
     anecdote.setup()
     captcha.setup()
 
-    await DP.start_polling(BOT)
+    try:
+        await DP.start_polling(BOT)
+    except asyncio.CancelledError:
+        pass
+    finally:
+        await DB.disconnect()
+        logging.shutdown()
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
