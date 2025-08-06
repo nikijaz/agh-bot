@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import random
 import time
+from typing import NoReturn
 
 from aiogram.types import Message
 from croniter import croniter
@@ -17,7 +18,7 @@ def setup() -> None:
     asyncio.create_task(_monitor_chat_activity())
 
 
-async def _monitor_chat_activity() -> None:
+async def _monitor_chat_activity() -> NoReturn:
     while True:
         chat_states = await ChatState.select().where(
             ChatState.last_activity < SQL(f"NOW() - INTERVAL '{config.ACTIVITY_TIMEOUT_SECONDS} seconds'"),

@@ -1,6 +1,6 @@
 import asyncio
 import random
-from typing import Final
+from typing import Final, NoReturn
 
 from aiogram.exceptions import AiogramError
 from aiogram.filters.callback_data import CallbackData
@@ -35,7 +35,7 @@ def setup() -> None:
     asyncio.create_task(_monitor_captcha_timeout())
 
 
-async def _monitor_captcha_timeout() -> None:
+async def _monitor_captcha_timeout() -> NoReturn:
     while True:
         expired_captchas = await PendingCaptcha.select().where(
             PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{config.CAPTCHA_TIMEOUT_SECONDS} seconds'")
