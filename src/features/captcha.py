@@ -72,7 +72,7 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
         chat_member.chat.id,
         t(
             "captcha.message.captcha",
-            user=f"@{chat_member.new_chat_member.user.username}",
+            user=f"[{chat_member.new_chat_member.user.full_name}](tg://user?id={chat_member.new_chat_member.user.id})",
             button=t(f"captcha.button.{button_id}"),
         ),
         reply_markup=captcha_markup,
