@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 from typing import Final, NoReturn
 
@@ -47,8 +48,10 @@ async def _monitor_captcha_timeout() -> NoReturn:
                 await BOT.unban_chat_member(captcha.chat_id, captcha.user_id)
 
                 await BOT.delete_message(captcha.chat_id, captcha.message_id)
-            except AiogramError:
-                pass  # Ignore if user cannot be kicked or message does not exist
+            except AiogramError as e:
+                logging.error(
+                    f"Handling expired captcha for chat {captcha.chat_id}, user {captcha.user_id} failed: {e}"
+                )
             await captcha.delete()
 
         await asyncio.sleep(1)  # Avoid busy-waiting

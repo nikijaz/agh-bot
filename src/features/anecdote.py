@@ -1,9 +1,11 @@
 import asyncio
 import hashlib
+import logging
 import random
 import time
 from typing import NoReturn
 
+from aiogram.exceptions import AiogramError
 from aiogram.types import Message
 from croniter import croniter
 from i18n import t
@@ -31,7 +33,10 @@ async def _monitor_chat_activity() -> NoReturn:
         )  # fmt: skip
 
         for chat_state in chat_states:
-            await _handle_inactivity(chat_state.chat_id)
+            try:
+                await _handle_inactivity(chat_state.chat_id)
+            except AiogramError as e:
+                logging.error(f"Handling inactivity for chat {chat_state.chat_id} failed: {e}")
 
         current_time = time.time()
         sleep_till = croniter(ACTIVITY_HANDLER_SCHEDULE, current_time, second_at_beginning=True).get_next()
@@ -42,7 +47,7 @@ async def _handle_inactivity(chat_id: int) -> None:
     def hash(anecdote: str) -> str:
         return hashlib.sha1(anecdote.encode()).hexdigest()[:32]
 
-    with open("anecdotes.txt", "r") as file:  # Read anecdotes and split them by "***"
+    with open("anecdotes.txt", "r", encoding="utf-8") as file:  # Read anecdotes and split them by "***"
         anecdotes = [a.strip() for a in file.read().split("***")]
 
     used_anecdotes = await AnecdoteHistory.select().where(AnecdoteHistory.chat_id == chat_id)
