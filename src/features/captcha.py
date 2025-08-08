@@ -64,8 +64,9 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
         ChatPermissions(can_send_messages=False),
     )
 
-    button_id = random.choice(list(CAPTCHA_BUTTONS.keys())[1:])  # Ensure the first button is not selected
-    shuffled_buttons = random.sample(list(CAPTCHA_BUTTONS.values()), len(CAPTCHA_BUTTONS))
+    shuffled_button_ids = random.sample(list(CAPTCHA_BUTTONS.keys()), len(CAPTCHA_BUTTONS))
+    shuffled_buttons = [CAPTCHA_BUTTONS[button_id] for button_id in shuffled_button_ids]
+    button_id = random.choice(shuffled_button_ids[1:])  # Ensure the first button is not selected
     captcha_markup = InlineKeyboardMarkup(inline_keyboard=[shuffled_buttons[:2], shuffled_buttons[2:]])
 
     message = await BOT.send_message(
