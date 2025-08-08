@@ -56,5 +56,11 @@ async def chat_member_left_handler(chat_member: ChatMemberUpdated) -> None:
     await captcha.dismiss_pending_captcha(chat_member)
     if chat_member.new_chat_member.status != ChatMemberStatus.KICKED:
         await BOT.send_message(
-            chat_member.chat.id, t("goodbye.message.goodbye", user=f"@{chat_member.old_chat_member.user.username}")
+            chat_member.chat.id,
+            t(
+                "goodbye.message.goodbye",
+                user=f"@{chat_member.old_chat_member.user.username}"
+                if chat_member.old_chat_member.user.username
+                else f"[{chat_member.old_chat_member.user.full_name}](tg://user?id={chat_member.old_chat_member.user.id})",
+            ),
         )
