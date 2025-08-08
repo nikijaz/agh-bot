@@ -61,7 +61,7 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
     await BOT.restrict_chat_member(
         chat_member.chat.id,
         chat_member.new_chat_member.user.id,
-        ChatPermissions(can_send_messages=False),
+        ChatPermissions(),
     )
 
     shuffled_button_ids = random.sample(list(CAPTCHA_BUTTONS.keys()), len(CAPTCHA_BUTTONS))
@@ -116,7 +116,7 @@ async def process_captcha_response(callback_query: CallbackQuery, callback_data:
         await BOT.restrict_chat_member(
             callback_query.message.chat.id,
             callback_query.from_user.id,
-            ChatPermissions(can_send_messages=True),
+            ChatPermissions(**{field: True for field in ChatPermissions.model_fields}),  # Lift all restrictions
         )
         await callback_query.answer(t("captcha.message.solved"))
     else:
