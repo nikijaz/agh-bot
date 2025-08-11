@@ -37,7 +37,12 @@ async def message_handler(message: Message) -> None:
     if message.content_type in {ContentType.NEW_CHAT_MEMBERS, ContentType.LEFT_CHAT_MEMBER}:
         await message.delete()  # Delete telegram's join/leave messages, we handle them ourselves
 
-    if message.chat.type != ChatType.PRIVATE and message.from_user and not message.from_user.is_bot:
+    if (
+        message.chat.type != ChatType.PRIVATE
+        and message.from_user
+        and not message.from_user.is_bot
+        and message.content_type == ContentType.TEXT
+    ):
         await anecdote.record_message_activity(message)
 
 
