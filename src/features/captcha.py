@@ -7,7 +7,8 @@ from aiogram.exceptions import AiogramError
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import (
     CallbackQuery,
-    ChatMemberUpdated,
+    Chat,
+    ChatMemberUnion,
     ChatPermissions,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -57,10 +58,10 @@ async def _monitor_captcha_timeout() -> NoReturn:
         await asyncio.sleep(1)  # Avoid busy-waiting
 
 
-async def send_captcha(chat_member: ChatMemberUpdated) -> None:
+async def send_captcha(chat: Chat, chat_member: ChatMemberUnion) -> None:
     await BOT.restrict_chat_member(
-        chat_member.chat.id,
-        chat_member.new_chat_member.user.id,
+        chat.id,
+        chat_member.user.id,
         ChatPermissions(),
     )
 
@@ -70,33 +71,33 @@ async def send_captcha(chat_member: ChatMemberUpdated) -> None:
     captcha_markup = InlineKeyboardMarkup(inline_keyboard=[shuffled_buttons[:2], shuffled_buttons[2:]])
 
     message = await BOT.send_message(
-        chat_member.chat.id,
+        chat.id,
         t(
             "captcha.message.captcha",
-            user=f"[{chat_member.new_chat_member.user.full_name}](tg://user?id={chat_member.new_chat_member.user.id})",
+            user=f"[{chat_member.user.full_name}](tg://user?id={chat_member.user.id})",
             button=t(f"captcha.button.{button_id}"),
         ),
         reply_markup=captcha_markup,
     )
 
     await PendingCaptcha.insert(
-        chat_id=chat_member.chat.id,
-        user_id=chat_member.new_chat_member.user.id,
+        chat_id=chat.id,
+        user_id=chat_member.user.id,
         message_id=message.message_id,
         button_id=button_id,
     )
 
 
-async def dismiss_pending_captcha(chat_member: ChatMemberUpdated) -> None:
+async def dismiss_pending_captcha(chat: Chat, chat_member: ChatMemberUnion) -> None:
     captcha = await PendingCaptcha.get_or_none(
-        PendingCaptcha.chat_id == chat_member.chat.id,
-        PendingCaptcha.user_id == chat_member.new_chat_member.user.id,
+        PendingCaptcha.chat_id == chat.id,
+        PendingCaptcha.user_id == chat_member.user.id,
     )
     if captcha is not None:
         try:
-            await BOT.delete_message(chat_member.chat.id, captcha.message_id)
-        except AiogramError:
-            pass  # Ignore if message does not exist
+            await BOT.delete_message(chat.id, captcha.message_id)
+        except AiogramError as e:
+            logging.error(f"Dismissing captcha for chat {captcha.chat_id}, user {captcha.user_id} failed: {e}")
         await captcha.delete()
 
 

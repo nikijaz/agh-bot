@@ -43,7 +43,7 @@ async def message_handler(message: Message) -> None:
 
 @handler(DP.chat_member, ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def chat_member_join_handler(chat_member: ChatMemberUpdated) -> None:
-    await captcha.send_captcha(chat_member)
+    await captcha.send_captcha(chat_member.chat, chat_member.new_chat_member)
 
 
 @handler(DP.callback_query, CaptchaCallback.filter())
@@ -53,7 +53,7 @@ async def captcha_data_handler(callback_query: CallbackQuery, callback_data: Cap
 
 @handler(DP.chat_member, ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def chat_member_left_handler(chat_member: ChatMemberUpdated) -> None:
-    await captcha.dismiss_pending_captcha(chat_member)
+    await captcha.dismiss_pending_captcha(chat_member.chat, chat_member.old_chat_member)
     if chat_member.new_chat_member.status != ChatMemberStatus.KICKED:
         await BOT.send_message(
             chat_member.chat.id,
