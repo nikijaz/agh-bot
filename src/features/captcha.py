@@ -17,7 +17,8 @@ from aiogram.types import (
 from i18n import t
 from peewee import SQL
 
-from src import BOT, config
+from src import BOT
+from src.config import CONFIG
 from src.models import PendingCaptcha
 
 
@@ -40,7 +41,7 @@ def setup() -> None:
 async def _monitor_captcha_timeout() -> NoReturn:
     while True:
         expired_captchas = await PendingCaptcha.select().where(
-            PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{config.CAPTCHA_TIMEOUT_SECONDS} seconds'")
+            PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{CONFIG.CAPTCHA_TIMEOUT_SECONDS} seconds'")
         )  # fmt: skip
 
         for captcha in expired_captchas:

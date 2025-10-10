@@ -14,9 +14,10 @@ prevent spam and anecdote sending to keep the community engaged.
     cd agh-bot/
     ```
 
-2. Create `.env` file with your configuration. You can use `.env.example` as a template.
-3. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
-4. Run detached Docker containers:
+2. Create `.env` file with your secrets. You can use `.env.example` as a template.
+3. Modify `config.toml` with your bot configuration.
+4. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
+5. Run detached Docker containers:
 
     ```shell
     docker compose up -d
@@ -33,23 +34,24 @@ prevent spam and anecdote sending to keep the community engaged.
     cd agh-bot/
     ```
 
-2. Create `.env` file with your configuration. You can use `.env.example` as a template.
-3. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
-4. Install dependencies:
+2. Create `.env` file with your secrets. You can use `.env.example` as a template.
+3. Modify `config.toml` with your bot configuration.
+4. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
+5. Install dependencies:
 
     ```shell
     uv sync
     ```
 
-5. Make changes to the code.
+6. Make changes to the code.
 
-6. Verify your changes by running the bot:
+7. Verify your changes by running the bot:
 
     ```shell
     uv run main.py
     ```
 
-7. Check for any typing, linting or formatting issues:
+8. Check for any typing, linting or formatting issues:
 
     ```shell
     mypy .

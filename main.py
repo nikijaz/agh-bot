@@ -4,13 +4,14 @@ import sys
 
 import i18n
 
-from src import BOT, DP, config, handlers
+from src import BOT, DP, handlers
+from src.config import CONFIG
 from src.features import anecdote, captcha
 from src.models import DB
 
 
 async def main() -> None:
-    i18n.set("locale", config.LOCALE)
+    i18n.set("locale", CONFIG.LOCALE)
     i18n.set("filename_format", "{locale}.{format}")
     i18n.set("skip_locale_root_data", True)
     i18n.load_path.append("locales")

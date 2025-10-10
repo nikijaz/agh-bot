@@ -1,27 +1,38 @@
 import os
 from typing import Final
 
+import toml
 from dotenv import load_dotenv
 
-load_dotenv()
+CONFIG_PATH: Final = "config.toml"
 
-LOCALE: Final = os.getenv("LOCALE", "")
-if not LOCALE:
-    raise ValueError("Locale is not set. Please set the LOCALE environment variable.")
 
-BOT_TOKEN: Final = os.getenv("BOT_TOKEN", "")
-if not BOT_TOKEN:
-    raise ValueError("Bot token is not set. Please set the BOT_TOKEN environment variable.")
+class Config:
+    def __init__(self) -> None:
+        self._load_env()
+        self._load_config()
 
-POSTGRES_HOST: Final = os.getenv("POSTGRES_HOST", "")
-POSTGRES_USER: Final = os.getenv("POSTGRES_USER", "")
-POSTGRES_PASSWORD: Final = os.getenv("POSTGRES_PASSWORD", "")
-POSTGRES_DB: Final = os.getenv("POSTGRES_DB", "")
-if not all([POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB]):
-    raise ValueError("PostgreSQL credentials are not set. Please set all required environment variables.")
+    def _load_env(self) -> None:
+        load_dotenv()
 
-ACTIVITY_TIMEOUT_SECONDS: Final = int(os.getenv("ACTIVITY_TIMEOUT_SECONDS", 3600))
-ACTIVITY_HANDLER_SCHEDULE: Final = os.getenv("ACTIVITY_HANDLER_SCHEDULE", "*/10 * * * * *")
-OUT_OF_ANECDOTES_INTERVAL_SECONDS: Final = int(os.getenv("OUT_OF_ANECDOTES_INTERVAL_SECONDS", 10800))
+        self.BOT_TOKEN: str = os.environ["BOT_TOKEN"]
 
-CAPTCHA_TIMEOUT_SECONDS: Final = int(os.getenv("CAPTCHA_TIMEOUT_SECONDS", 60))
+        self.POSTGRES_HOST: str = os.environ["POSTGRES_HOST"]
+        self.POSTGRES_USER: str = os.environ["POSTGRES_USER"]
+        self.POSTGRES_PASSWORD: str = os.environ["POSTGRES_PASSWORD"]
+        self.POSTGRES_DB: str = os.environ["POSTGRES_DB"]
+
+    def _load_config(self) -> None:
+        with open(CONFIG_PATH, "r") as file:
+            data = toml.load(file)
+
+        self.LOCALE: str = data["LOCALE"]
+
+        self.ACTIVITY_TIMEOUT_SECONDS: int = data["ACTIVITY_TIMEOUT_SECONDS"]
+        self.ACTIVITY_HANDLER_SCHEDULE: str = data["ACTIVITY_HANDLER_SCHEDULE"]
+        self.OUT_OF_ANECDOTES_INTERVAL_SECONDS: int = data["OUT_OF_ANECDOTES_INTERVAL_SECONDS"]
+
+        self.CAPTCHA_TIMEOUT_SECONDS: int = data["CAPTCHA_TIMEOUT_SECONDS"]
+
+
+CONFIG: Final = Config()

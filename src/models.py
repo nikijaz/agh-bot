@@ -9,10 +9,10 @@ from peewee_aio.fields import (
     IdentityField,
 )
 
-from src import config
+from src.config import CONFIG
 
 DB: Final = Manager(
-    f"postgresql://{config.POSTGRES_USER}:{config.POSTGRES_PASSWORD}@{config.POSTGRES_HOST}/{config.POSTGRES_DB}",
+    f"postgresql://{CONFIG.POSTGRES_USER}:{CONFIG.POSTGRES_PASSWORD}@{CONFIG.POSTGRES_HOST}/{CONFIG.POSTGRES_DB}",
 )
 
 

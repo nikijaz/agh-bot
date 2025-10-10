@@ -11,8 +11,8 @@ from croniter import croniter
 from i18n import t
 from peewee import SQL, fn
 
-from src import BOT, config
-from src.config import ACTIVITY_HANDLER_SCHEDULE
+from src import BOT
+from src.config import CONFIG
 from src.models import AnecdoteHistory, ChatState, OutOfAnecdotesHistory
 
 
@@ -23,11 +23,11 @@ def setup() -> None:
 async def _monitor_chat_activity() -> NoReturn:
     while True:
         chat_states = await ChatState.select().where(
-            ChatState.last_activity < SQL(f"NOW() - INTERVAL '{config.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
+            ChatState.last_activity < SQL(f"NOW() - INTERVAL '{CONFIG.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
             ~fn.EXISTS(  # Ensure there are no recent anecdotes
                 AnecdoteHistory.select().where(
                     AnecdoteHistory.chat_id == ChatState.chat_id,
-                    AnecdoteHistory.inserted_at > SQL(f"NOW() - INTERVAL '{config.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
+                    AnecdoteHistory.inserted_at > SQL(f"NOW() - INTERVAL '{CONFIG.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
                 )
             ),
         )  # fmt: skip
@@ -39,7 +39,7 @@ async def _monitor_chat_activity() -> NoReturn:
                 logging.error(f"Handling inactivity for chat {chat_state.chat_id} failed: {e}")
 
         current_time = time.time()
-        sleep_till = croniter(ACTIVITY_HANDLER_SCHEDULE, current_time, second_at_beginning=True).get_next()
+        sleep_till = croniter(CONFIG.ACTIVITY_HANDLER_SCHEDULE, current_time, second_at_beginning=True).get_next()
         await asyncio.sleep(sleep_till - current_time)
 
 
@@ -64,7 +64,7 @@ async def _handle_inactivity(chat_id: int) -> None:
 
     should_notify = await OutOfAnecdotesHistory.select().where(
             OutOfAnecdotesHistory.chat_id == chat_id,
-            OutOfAnecdotesHistory.inserted_at > SQL(f"NOW() - INTERVAL '{config.OUT_OF_ANECDOTES_INTERVAL_SECONDS} seconds'"),
+            OutOfAnecdotesHistory.inserted_at > SQL(f"NOW() - INTERVAL '{CONFIG.OUT_OF_ANECDOTES_INTERVAL_SECONDS} seconds'"),
     ).count() == 0  # fmt: skip
 
     if should_notify:

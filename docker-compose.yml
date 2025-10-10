@@ -9,6 +9,7 @@ services:
     env_file:
       - .env
     volumes:
+      - ./config.json:/app/config.json:ro
       - ./anecdotes.txt:/app/anecdotes.txt:ro
     depends_on:
       postgres:
