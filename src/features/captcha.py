@@ -107,6 +107,11 @@ async def dismiss_pending_captcha(chat: Chat, chat_member: ChatMemberUnion) -> N
 
     if captcha is not None:
         await BOT.delete_message(chat.id, captcha.message_id)
+        await BOT.restrict_chat_member(
+            captcha.chat_id,
+            captcha.user_id,
+            GRANT_ALL_PERMISSIONS,
+        )
 
 
 async def process_captcha_response(callback_query: CallbackQuery, callback_data: CaptchaCallback) -> None:
