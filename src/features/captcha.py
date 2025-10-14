@@ -33,6 +33,9 @@ CAPTCHA_BUTTONS: Final = {
     "blue": InlineKeyboardButton(text="🟦", callback_data=CaptchaCallback(button_id="blue").pack()),
 }
 
+GRANT_ALL_PERMISSIONS = ChatPermissions(**{field: True for field in ChatPermissions.model_fields})
+REVOKE_ALL_PERMISSIONS = ChatPermissions()
+
 
 def setup() -> None:
     asyncio.create_task(_monitor_captcha_timeout())
@@ -40,21 +43,23 @@ def setup() -> None:
 
 async def _monitor_captcha_timeout() -> NoReturn:
     while True:
-        expired_captchas = await PendingCaptcha.select().where(
-            PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{CONFIG.CAPTCHA_TIMEOUT_SECONDS} seconds'")
-        )  # fmt: skip
+        deleted: list[PendingCaptcha] = (
+            await PendingCaptcha.delete()
+            .where(
+                PendingCaptcha.inserted_at < SQL(f"NOW() - INTERVAL '{CONFIG.CAPTCHA_TIMEOUT_SECONDS} seconds'"),
+            )
+            .returning(PendingCaptcha)
+        )
 
-        for captcha in expired_captchas:
+        for captcha in deleted:
             try:
                 await BOT.ban_chat_member(captcha.chat_id, captcha.user_id)
                 await BOT.unban_chat_member(captcha.chat_id, captcha.user_id)
-
                 await BOT.delete_message(captcha.chat_id, captcha.message_id)
             except AiogramError as e:
                 logging.error(
                     f"Handling expired captcha for chat {captcha.chat_id}, user {captcha.user_id} failed: {e}"
                 )
-            await captcha.delete()
 
         await asyncio.sleep(1)  # Avoid busy-waiting
 
@@ -63,7 +68,7 @@ async def send_captcha(chat: Chat, chat_member: ChatMemberUnion) -> None:
     await BOT.restrict_chat_member(
         chat.id,
         chat_member.user.id,
-        ChatPermissions(),
+        REVOKE_ALL_PERMISSIONS,
     )
 
     shuffled_button_ids = random.sample(list(CAPTCHA_BUTTONS.keys()), len(CAPTCHA_BUTTONS))
@@ -90,40 +95,43 @@ async def send_captcha(chat: Chat, chat_member: ChatMemberUnion) -> None:
 
 
 async def dismiss_pending_captcha(chat: Chat, chat_member: ChatMemberUnion) -> None:
-    captcha = await PendingCaptcha.get_or_none(
-        PendingCaptcha.chat_id == chat.id,
-        PendingCaptcha.user_id == chat_member.user.id,
+    deleted: list[PendingCaptcha] = (
+        await PendingCaptcha.delete()
+        .where(
+            PendingCaptcha.chat_id == chat.id,
+            PendingCaptcha.user_id == chat_member.user.id,
+        )
+        .returning(PendingCaptcha)
     )
+    captcha = deleted[0] if deleted else None
+
     if captcha is not None:
-        try:
-            await BOT.delete_message(chat.id, captcha.message_id)
-        except AiogramError as e:
-            logging.error(f"Dismissing captcha for chat {captcha.chat_id}, user {captcha.user_id} failed: {e}")
-        await captcha.delete()
+        await BOT.delete_message(chat.id, captcha.message_id)
 
 
 async def process_captcha_response(callback_query: CallbackQuery, callback_data: CaptchaCallback) -> None:
     if not isinstance(callback_query.message, Message):
         raise ValueError("Callback must be associated with a deletable message")
 
-    captcha = await PendingCaptcha.get_or_none(
-        PendingCaptcha.chat_id == callback_query.message.chat.id,
-        PendingCaptcha.user_id == callback_query.from_user.id,
+    deleted: list[PendingCaptcha] = (
+        await PendingCaptcha.delete()
+        .where(
+            PendingCaptcha.chat_id == callback_query.message.chat.id,
+            PendingCaptcha.user_id == callback_query.from_user.id,
+        )
+        .returning(PendingCaptcha)
     )
-    if captcha is None:
-        await callback_query.answer(t("captcha.message.not_found"))
-        return
+    captcha = deleted[0] if deleted else None
 
-    if captcha.button_id == callback_data.button_id:
+    if captcha is not None and captcha.button_id == callback_data.button_id:
         await BOT.restrict_chat_member(
             callback_query.message.chat.id,
             callback_query.from_user.id,
-            ChatPermissions(**{field: True for field in ChatPermissions.model_fields}),  # Lift all restrictions
+            GRANT_ALL_PERMISSIONS,
         )
         await callback_query.answer(t("captcha.message.solved"))
-    else:
+    else:  # Kick the user even if somehow there is no captcha, let's be safe
         await BOT.ban_chat_member(callback_query.message.chat.id, callback_query.from_user.id)
         await BOT.unban_chat_member(callback_query.message.chat.id, callback_query.from_user.id)
 
     await callback_query.message.delete()
-    await captcha.delete()

@@ -24,13 +24,13 @@ async def _monitor_chat_activity() -> NoReturn:
     while True:
         chat_states = await ChatState.select().where(
             ChatState.last_activity < SQL(f"NOW() - INTERVAL '{CONFIG.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
-            ~fn.EXISTS(  # Ensure there are no recent anecdotes
+            ~fn.EXISTS(  # Ensure we haven't sent an anecdote recently
                 AnecdoteHistory.select().where(
                     AnecdoteHistory.chat_id == ChatState.chat_id,
                     AnecdoteHistory.inserted_at > SQL(f"NOW() - INTERVAL '{CONFIG.ACTIVITY_TIMEOUT_SECONDS} seconds'"),
                 )
             ),
-        )  # fmt: skip
+        )
 
         for chat_state in chat_states:
             try:
@@ -53,6 +53,9 @@ async def _handle_inactivity(chat_id: int) -> None:
     used_anecdotes = await AnecdoteHistory.select().where(AnecdoteHistory.chat_id == chat_id)
     used_hashes = set(a.anecdote_hash for a in used_anecdotes)
     unused_anecdotes = [a for a in anecdotes if hash(a) not in used_hashes]
+
+    # If there are unused anecdotes, send one and record its usage
+    # Otherwise, notify that there are no new anecdotes left (but not too often)
     if unused_anecdotes:
         anecdote = random.choice(unused_anecdotes)
         await BOT.send_message(chat_id, anecdote)
@@ -62,12 +65,17 @@ async def _handle_inactivity(chat_id: int) -> None:
         )
         return
 
-    should_notify = await OutOfAnecdotesHistory.select().where(
+    was_notified = (
+        await OutOfAnecdotesHistory.select()
+        .where(
             OutOfAnecdotesHistory.chat_id == chat_id,
-            OutOfAnecdotesHistory.inserted_at > SQL(f"NOW() - INTERVAL '{CONFIG.OUT_OF_ANECDOTES_INTERVAL_SECONDS} seconds'"),
-    ).count() == 0  # fmt: skip
+            OutOfAnecdotesHistory.inserted_at
+            > SQL(f"NOW() - INTERVAL '{CONFIG.OUT_OF_ANECDOTES_INTERVAL_SECONDS} seconds'"),
+        )
+        .exists()
+    )
 
-    if should_notify:
+    if not was_notified:
         await BOT.send_message(chat_id, t("anecdote.message.out_of_anecdotes"))
         await OutOfAnecdotesHistory.insert(chat_id=chat_id)
 

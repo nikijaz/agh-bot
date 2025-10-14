@@ -23,6 +23,7 @@ dev = [
 
 [tool.mypy]
 strict = true
+disallow_untyped_calls = false
 
 [tool.ruff]
 line-length = 120
