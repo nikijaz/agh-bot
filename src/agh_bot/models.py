@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
-from typing import Final
 
-from peewee_aio import AIOModel, Manager
+from peewee_aio import AIOModel
 from peewee_aio.fields import (
     BigIntegerField,
     CharField,
@@ -9,11 +8,7 @@ from peewee_aio.fields import (
     IdentityField,
 )
 
-from src.config import CONFIG
-
-DB: Final = Manager(
-    f"postgresql://{CONFIG.POSTGRES_USER}:{CONFIG.POSTGRES_PASSWORD}@{CONFIG.POSTGRES_HOST}/{CONFIG.POSTGRES_DB}",
-)
+from agh_bot.loader import DB
 
 
 class DateTimeTZField(DateTimeField[datetime]):
@@ -31,7 +26,7 @@ class ChatState(AIOModel):
 
 @DB.register
 class AnecdoteHistory(AIOModel):
-    anecdote_hash = CharField(max_length=32, primary_key=True)
+    anecdote_hash = CharField(primary_key=True, max_length=32)
     chat_id = BigIntegerField()
     inserted_at = DateTimeTZField(default=lambda: datetime.now(timezone.utc))
 

@@ -1,0 +1,27 @@
+anecdote:
+  message:
+    out_of_anecdotes: "Я хотел бы рассказать анекдот, но я его забыл :("
+
+captcha:
+  button:
+    red: "красную"
+    yellow: "желтую"
+    green: "зеленую"
+    blue: "синюю"
+
+  message:
+    captcha: "Привет, %{user}! Чтобы доказать, что ты не робот, нажми на *%{button}* кнопку ниже."
+    solved: "ദ്ദി( ᵔ ᴗ ᵔ )"
+
+    # Replies for the user who keeps trying to solve someone else's captcha
+    meddling_reply_1: "Не нажимай на меня!"
+    meddling_reply_2: "Говорю же, не нажимай!"
+    meddling_reply_3: "Я же просил не нажимать!"
+    meddling_reply_4: "Прекрати нажимать на меня!"
+    meddling_reply_5: "Последнее предупреждение!"
+    meddling_reply_final: "╭∩╮( •̀_•́ )╭∩╮"
+
+goodbye:
+  message:
+    goodbye: "Прощай, %{user}!"
+  

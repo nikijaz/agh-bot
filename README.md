@@ -1,12 +1,13 @@
 # AGH Bot
 
-Telegram bot designed for the AGH University of Science and Technology community. Features captcha verification to
-prevent spam and anecdote sending to keep the community engaged.
+Telegram bot designed for the AGH University of Science and Technology
+community. Features captcha verification to prevent spam and anecdote sending to
+keep the community engaged.
 
 ## Installation
 
-0. Ensure [Docker](https://docs.docker.com/engine/install/) and
-   [Docker Compose](https://docs.docker.com/compose/install/) are installed.
+0. Ensure [Docker](https://docs.docker.com/engine/install/) and [Docker
+   Compose](https://docs.docker.com/compose/install/) are installed.
 1. Clone and navigate to the repository:
 
     ```shell
@@ -14,19 +15,19 @@ prevent spam and anecdote sending to keep the community engaged.
     cd agh-bot/
     ```
 
-2. Create `.env` file with your secrets. You can use `.env.example` as a template.
-3. Modify `config.toml` with your bot configuration.
-4. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
-5. Run detached Docker containers:
+2. Create `.env` file with your configuration. You can use `.env.example` as a
+   template.
+3. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
+4. Run compose in production mode:
 
     ```shell
-    docker compose up -d
+    docker compose -f docker-compose.prod.yml up -d
     ```
 
 ## Development
 
-0. Ensure [Docker](https://docs.docker.com/engine/install/), [Docker Compose](https://docs.docker.com/compose/install/)
-   and [uv](https://docs.astral.sh/uv/getting-started/installation/) are installed.
+0. Ensure [Docker](https://docs.docker.com/engine/install/) and [Docker
+   Compose](https://docs.docker.com/compose/install/) are installed.
 1. Clone and navigate to the repository:
 
     ```shell
@@ -34,24 +35,18 @@ prevent spam and anecdote sending to keep the community engaged.
     cd agh-bot/
     ```
 
-2. Create `.env` file with your secrets. You can use `.env.example` as a template.
-3. Modify `config.toml` with your bot configuration.
-4. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
-5. Install dependencies:
+2. Create `.env` file with your configuration. You can use `.env.example` as a
+   template.
+3. Create `anecdotes.txt` file with anecdotes, each separated by "`***`".
+
+4. Run compose in development mode:
 
     ```shell
-    uv sync
+    docker compose -f docker-compose.dev.yml up
     ```
 
-6. Make changes to the code.
-
-7. Verify your changes by running the bot:
-
-    ```shell
-    uv run main.py
-    ```
-
-8. Check for any typing, linting or formatting issues:
+5. Make changes to the codebase. The bot will automatically reload.
+6. Check for any typing, linting or formatting issues:
 
     ```shell
     mypy .
@@ -61,6 +56,7 @@ prevent spam and anecdote sending to keep the community engaged.
 
 ## Technologies Used
 
-**Python** powers the bot's logic, with **uv** as the package manager. The bot uses the **Aiogram** library for Telegram
-API communication. **PostgreSQL** serves as the database, with **peewee** for ORM. **Docker** is used for
+**Python** powers the bot's logic, with **uv** as the package manager. The bot
+uses the **Aiogram** library for Telegram API communication. **PostgreSQL**
+serves as the database, with **peewee** for ORM. **Docker** is used for
 containerization.

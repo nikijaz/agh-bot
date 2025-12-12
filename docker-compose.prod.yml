@@ -6,10 +6,8 @@ services:
     environment:
       PYTHONUNBUFFERED: 1
       POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
-    env_file:
-      - .env
     volumes:
-      - ./config.toml:/app/config.toml:ro
+      - ./.env:/app/.env:ro # Nasty hack to hot-reload .env
       - ./anecdotes.txt:/app/anecdotes.txt:ro
     depends_on:
       postgres:

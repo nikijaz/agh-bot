@@ -1,25 +1,32 @@
 [project]
 name = "agh-bot"
-version = "0.1.0"
-license = { file = "LICENSE" }
-requires-python = ">=3.9"
+version = "1.0.0"
+requires-python = ">=3.9,<=3.13"
 dependencies = [
     "aiogram>=1.2.3",
+    "cachetools>=6.2.2",
     "croniter>=6.0.0",
     "i18nice[yaml]>=0.16.0",
     "peewee-aio[asyncpg]>=2.0.0",
     "python-dotenv>=1.1.1",
-    "toml>=0.10.2",
 ]
 
 [dependency-groups]
 dev = [
     "mypy>=1.17.0",
     "ruff>=0.0.17",
+    "types-cachetools>=6.2.0.20251022",
     "types-croniter>=6.0.0.20250626",
     "types-peewee>=3.18.2.20250710",
-    "types-toml>=0.10.8.20240310",
+    "watchdog>=6.0.0",
 ]
+
+[build-system]
+requires = ["uv_build>=0.9.11,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "agh_bot"
 
 [tool.mypy]
 strict = true
@@ -27,9 +34,6 @@ disallow_untyped_calls = false
 
 [tool.ruff]
 line-length = 120
-lint.ignore = [
-    "E712", # Avoid using `==` to compare boolean values
-]
 
 [tool.ruff.format]
 quote-style = "double"

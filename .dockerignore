@@ -145,7 +145,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+.env*
 .envrc
 .venv
 env/
@@ -221,7 +221,7 @@ anecdotes.txt
 .gitattributes
 
 # Docker
-docker-compose.yml
+docker-compose*.yml
 Dockerfile
 .docker
 .dockerignore
