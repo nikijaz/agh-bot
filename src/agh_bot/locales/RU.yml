@@ -20,8 +20,3 @@ captcha:
     meddling_reply_4: "Прекрати нажимать на меня!"
     meddling_reply_5: "Последнее предупреждение!"
     meddling_reply_final: "╭∩╮( •̀_•́ )╭∩╮"
-
-goodbye:
-  message:
-    goodbye: "Прощай, %{user}!"
-  

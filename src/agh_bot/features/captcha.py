@@ -107,17 +107,6 @@ async def send_captcha(chat: Chat, chat_member: ChatMemberUnion) -> None:
     )
 
 
-async def check_has_captcha(chat: Chat, chat_member: ChatMemberUnion) -> bool:
-    return (
-        await PendingCaptcha.select()
-        .where(
-            PendingCaptcha.chat_id == chat.id,
-            PendingCaptcha.user_id == chat_member.user.id,
-        )
-        .exists()
-    )
-
-
 meddling_attempt_count: TTLCache[str, int] = TTLCache(maxsize=1024, ttl=CONFIG.MEDDLING_MUTE_SECONDS)
 
 

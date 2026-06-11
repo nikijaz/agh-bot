@@ -1,13 +1,11 @@
 from aiogram import F, Router
-from aiogram.enums import ChatMemberStatus, ContentType
+from aiogram.enums import ContentType
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
-from i18n import t
 
 from agh_bot.features import anecdotes
 from agh_bot.features import captcha
-from agh_bot.features.captcha import CaptchaCallback, check_has_captcha
-from agh_bot.loader import BOT
+from agh_bot.features.captcha import CaptchaCallback
 
 ROUTER = Router()
 
@@ -24,16 +22,6 @@ async def on_captcha_data(callback_query: CallbackQuery, callback_data: CaptchaC
 
 @ROUTER.chat_member(ChatMemberUpdatedFilter(IS_MEMBER >> IS_NOT_MEMBER))
 async def on_chat_member_left(chat_member: ChatMemberUpdated) -> None:
-    has_captcha = await check_has_captcha(chat_member.chat, chat_member.old_chat_member)
-    if not has_captcha and chat_member.new_chat_member.status != ChatMemberStatus.KICKED:
-        await BOT.send_message(
-            chat_member.chat.id,
-            t(
-                "goodbye.message.goodbye",
-                user=chat_member.old_chat_member.user.mention_markdown(),
-            ),
-        )
-
     await captcha.dismiss_pending_captcha(chat_member.chat, chat_member.old_chat_member)
 
 

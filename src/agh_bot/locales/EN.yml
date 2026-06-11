@@ -20,7 +20,3 @@ captcha:
     meddling_reply_4: "Stop pressing me!"
     meddling_reply_5: "Last warning!"
     meddling_reply_final: "╭∩╮( •̀_•́ )╭∩╮"
-
-goodbye:
-  message:
-    goodbye: "Goodbye, %{user}!"
